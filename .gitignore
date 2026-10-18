@@ -1,6 +1,10 @@
 # Dependencies
 node_modules/
 
+# Local assets / design files
+Assets/
+assets/
+
 # Production & Build output
 dist/
 build/
