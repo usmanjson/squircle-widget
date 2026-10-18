@@ -1,0 +1,23 @@
+{
+    "name": "squircle-tasks-widget",
+    "version": "1.0.0",
+    "description": "Compact Squircle Tasks & Notes Desktop Widget",
+    "author": "Usman",
+    "main": "main.js",
+    "scripts": {
+        "start": "electron .",
+        "build": "electron-builder --win --x64"
+    },
+    "devDependencies": {
+        "electron": "^33.0.0",
+        "electron-builder": "^25.1.8"
+    },
+    "build": {
+        "appId": "com.usman.squirclewidget",
+        "productName": "Squircle Tasks Widget",
+        "win": {
+            "target": "nsis",
+            "icon": "icon.ico"
+        }
+    }
+}

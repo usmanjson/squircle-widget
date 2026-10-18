@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compact Squircle Tasks & Notes Widget</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Custom Color Palette */
+            --blue-bell: #279af1ff;
+            --dim-grey: #60656fff;
+            --bright-snow: #fbfaf8ff;
+            --onyx: #131112ff;
+            --chartreuse: #baff29ff;
+
+            /* Light Theme Assignments */
+            --bg-canvas: #e5e4e2;
+            --widget-bg: var(--bright-snow);
+            --widget-border: rgba(96, 101, 111, 0.16);
+            --text-main: var(--onyx);
+            --text-muted: var(--dim-grey);
+            --item-bg: rgba(96, 101, 111, 0.07);
+            --item-bg-hover: rgba(96, 101, 111, 0.13);
+            --control-bg: rgba(96, 101, 111, 0.1);
+            --pill-bg: var(--onyx);
+            --pill-text: var(--bright-snow);
+            --badge-bg: var(--chartreuse);
+            --badge-text: var(--onyx);
+            --btn-bg: var(--onyx);
+            --btn-text: var(--bright-snow);
+            --btn-hover: var(--blue-bell);
+            --btn-hover-text: var(--bright-snow);
+            --checkbox-border: rgba(96, 101, 111, 0.45);
+            --checkbox-checked: var(--blue-bell);
+            --checkmark-color: var(--bright-snow);
+            --shadow-ambient: rgba(19, 17, 18, 0.1);
+            --shadow-strong: rgba(19, 17, 18, 0.18);
+            --focus-ring: rgba(39, 154, 241, 0.22);
+            --transition-speed: 0.25s;
+        }
+
+        [data-theme="dark"] {
+            /* Dark Theme Assignments */
+            --bg-canvas: #090809;
+            --widget-bg: var(--onyx);
+            --widget-border: rgba(96, 101, 111, 0.28);
+            --text-main: var(--bright-snow);
+            --text-muted: var(--dim-grey);
+            --item-bg: rgba(96, 101, 111, 0.14);
+            --item-bg-hover: rgba(96, 101, 111, 0.24);
+            --control-bg: rgba(96, 101, 111, 0.18);
+            --pill-bg: var(--chartreuse);
+            --pill-text: var(--onyx);
+            --badge-bg: rgba(186, 255, 41, 0.15);
+            --badge-text: var(--chartreuse);
+            --btn-bg: var(--chartreuse);
+            --btn-text: var(--onyx);
+            --btn-hover: var(--blue-bell);
+            --btn-hover-text: var(--bright-snow);
+            --checkbox-border: var(--dim-grey);
+            --checkbox-checked: var(--chartreuse);
+            --checkmark-color: var(--onyx);
+            --shadow-ambient: rgba(0, 0, 0, 0.55);
+            --shadow-strong: rgba(0, 0, 0, 0.8);
+            --focus-ring: rgba(186, 255, 41, 0.2);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background-color: var(--bg-canvas);
+            background-image:
+                radial-gradient(circle at 20% 25%, rgba(39, 154, 241, 0.1), transparent 40%),
+                radial-gradient(circle at 80% 75%, rgba(186, 255, 41, 0.08), transparent 40%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            transition: background-color var(--transition-speed) ease;
+            overflow: hidden;
+            padding: 16px;
+        }
+
+        /* Compact Squircle Container */
+        .widget-container {
+            width: 300px;
+            max-width: 100%;
+            background-color: var(--widget-bg);
+            border-radius: 26px;
+            /* Smooth compact squircle */
+            padding: 16px;
+            box-shadow:
+                0 22px 44px var(--shadow-ambient),
+                0 2px 6px var(--shadow-strong),
+                inset 0 0 0 1px var(--widget-border);
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            transition:
+                width 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                padding 0.3s ease,
+                background-color var(--transition-speed) ease,
+                box-shadow var(--transition-speed) ease,
+                transform 0.25s ease,
+                opacity 0.25s ease;
+            position: relative;
+            z-index: 10;
+        }
+
+        .widget-container.expanded {
+            width: 360px;
+        }
+
+        .widget-container.minimized .widget-body {
+            display: none;
+        }
+
+        .widget-body {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* Top Bar: macOS Window Controls + Theme Button */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .mac-controls {
+            display: flex;
+            gap: 7px;
+            align-items: center;
+            padding-left: 2px;
+        }
+
+        .mac-btn {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.15s ease, filter 0.15s ease;
+        }
+
+        .mac-btn:hover {
+            transform: scale(1.12);
+            filter: brightness(0.9);
+        }
+
+        .mac-close {
+            background-color: #ff5f56;
+        }
+
+        .mac-min {
+            background-color: #ffbd2e;
+        }
+
+        .mac-expand {
+            background-color: #27c93f;
+        }
+
+        .theme-toggle {
+            background: var(--item-bg);
+            border: 1px solid var(--widget-border);
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            border-radius: 10px;
+            /* Mini squircle */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-main);
+            transition: all 0.2s ease;
+        }
+
+        .theme-toggle:hover {
+            background: var(--item-bg-hover);
+            border-color: var(--blue-bell);
+            transform: translateY(-1px);
+        }
+
+        .theme-toggle svg {
+            width: 15px;
+            height: 15px;
+            fill: currentColor;
+        }
+
+        .icon-sun {
+            display: none;
+            color: var(--chartreuse);
+        }
+
+        .icon-moon {
+            display: block;
+            color: var(--blue-bell);
+        }
+
+        [data-theme="dark"] .icon-sun {
+            display: block;
+        }
+
+        [data-theme="dark"] .icon-moon {
+            display: none;
+        }
+
+        /* Title & Meta Row */
+        .widget-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+        }
+
+        .header-left h1 {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--text-main);
+            letter-spacing: -0.4px;
+        }
+
+        .date-text {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .count-badge {
+            background-color: var(--badge-bg);
+            color: var(--badge-text);
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 9px;
+            /* Squircle badge */
+            letter-spacing: -0.2px;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(186, 255, 41, 0.25);
+        }
+
+        /* Squircle Segmented Switch (Tasks <> Notes) */
+        .view-switch {
+            position: relative;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            background-color: var(--control-bg);
+            border-radius: 14px;
+            padding: 3px;
+            border: 1px solid var(--widget-border);
+            user-select: none;
+        }
+
+        .switch-pill {
+            position: absolute;
+            top: 3px;
+            bottom: 3px;
+            left: 3px;
+            width: calc(50% - 3px);
+            background-color: var(--pill-bg);
+            border-radius: 11px;
+            transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.25s ease;
+            box-shadow: 0 2px 8px rgba(19, 17, 18, 0.2);
+            z-index: 1;
+        }
+
+        .view-switch[data-active="notes"] .switch-pill {
+            transform: translateX(100%);
+        }
+
+        .switch-btn {
+            position: relative;
+            z-index: 2;
+            background: transparent;
+            border: none;
+            padding: 6px 0;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: color 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            border-radius: 11px;
+        }
+
+        .switch-btn svg {
+            width: 13px;
+            height: 13px;
+            fill: currentColor;
+        }
+
+        .switch-btn.active {
+            color: var(--pill-text);
+        }
+
+        /* Scrollable List Area */
+        .items-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 220px;
+            min-height: 140px;
+            overflow-y: auto;
+            padding-right: 2px;
+        }
+
+        .items-list.hidden {
+            display: none;
+        }
+
+        .items-list::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .items-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .items-list::-webkit-scrollbar-thumb {
+            background-color: var(--widget-border);
+            border-radius: 8px;
+        }
+
+        /* Task Item Card */
+        .task-item {
+            background-color: var(--item-bg);
+            border-radius: 14px;
+            /* Compact squircle card */
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .task-item:hover {
+            background-color: var(--item-bg-hover);
+            border-color: var(--widget-border);
+            transform: translateY(-1px);
+        }
+
+        /* Custom Squircle Checkbox */
+        .checkbox-wrapper {
+            position: relative;
+            display: inline-flex;
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+
+        .checkbox-wrapper input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .checkmark {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 18px;
+            height: 18px;
+            background-color: transparent;
+            border: 1.8px solid var(--checkbox-border);
+            border-radius: 6px;
+            /* Squircle checkbox */
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .checkbox-wrapper:hover .checkmark {
+            border-color: var(--blue-bell);
+        }
+
+        .checkbox-wrapper input:checked~.checkmark {
+            background-color: var(--checkbox-checked);
+            border-color: var(--checkbox-checked);
+        }
+
+        .checkmark:after {
+            content: "";
+            position: absolute;
+            display: none;
+            width: 4px;
+            height: 8px;
+            border: solid var(--checkmark-color);
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg) translate(-0.5px, -0.5px);
+        }
+
+        .checkbox-wrapper input:checked~.checkmark:after {
+            display: block;
+            animation: popIn 0.22s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: rotate(45deg) scale(0);
+                opacity: 0;
+            }
+
+            100% {
+                transform: rotate(45deg) scale(1) translate(-0.5px, -0.5px);
+                opacity: 1;
+            }
+        }
+
+        .item-text {
+            color: var(--text-main);
+            font-size: 13px;
+            font-weight: 500;
+            line-height: 1.35;
+            flex-grow: 1;
+            word-break: break-word;
+            user-select: none;
+            transition: color 0.2s ease;
+        }
+
+        .task-item.completed .item-text {
+            color: var(--text-muted);
+            text-decoration: line-through;
+            text-decoration-thickness: 1.5px;
+        }
+
+        /* Note Item Card */
+        .note-item {
+            background-color: var(--item-bg);
+            border-radius: 14px;
+            padding: 10px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+            border-left: 3px solid var(--blue-bell);
+            position: relative;
+        }
+
+        .note-item:nth-child(even) {
+            border-left-color: var(--chartreuse);
+        }
+
+        .note-item:hover {
+            background-color: var(--item-bg-hover);
+            border-color: var(--widget-border);
+            border-left-width: 3px;
+            transform: translateY(-1px);
+        }
+
+        .note-item:nth-child(odd):hover {
+            border-left-color: var(--blue-bell);
+        }
+
+        .note-item:nth-child(even):hover {
+            border-left-color: var(--chartreuse);
+        }
+
+        .note-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .note-meta {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .note-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background-color: var(--blue-bell);
+        }
+
+        .note-item:nth-child(even) .note-dot {
+            background-color: var(--chartreuse);
+        }
+
+        /* Hover Actions (Edit / Delete) */
+        .item-actions {
+            display: flex;
+            gap: 2px;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+            flex-shrink: 0;
+        }
+
+        .task-item:hover .item-actions,
+        .note-item:hover .item-actions {
+            opacity: 1;
+        }
+
+        .action-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            width: 22px;
+            height: 22px;
+            border-radius: 7px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+        }
+
+        .action-btn:hover {
+            background-color: var(--widget-bg);
+            color: var(--blue-bell);
+        }
+
+        .action-btn.delete:hover {
+            color: #ff5f56;
+        }
+
+        /* Inline Edit Input */
+        .edit-input {
+            width: 100%;
+            background: var(--widget-bg);
+            border: 1.5px solid var(--blue-bell);
+            color: var(--text-main);
+            border-radius: 8px;
+            padding: 4px 8px;
+            font-size: 13px;
+            font-weight: 500;
+            font-family: inherit;
+            outline: none;
+            display: none;
+        }
+
+        .editing .item-text {
+            display: none;
+        }
+
+        .editing .edit-input {
+            display: block;
+        }
+
+        .editing .item-actions {
+            display: none;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 28px 12px;
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 500;
+            border: 1px dashed var(--widget-border);
+            border-radius: 14px;
+        }
+
+        /* Compact Input Footer */
+        .input-container {
+            display: flex;
+            gap: 8px;
+            margin-top: 2px;
+        }
+
+        .item-input {
+            flex-grow: 1;
+            background-color: var(--item-bg);
+            border: 1.5px solid transparent;
+            border-radius: 14px;
+            /* Squircle input */
+            padding: 0 12px;
+            height: 38px;
+            color: var(--text-main);
+            font-size: 13px;
+            font-weight: 500;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .item-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .item-input:focus {
+            border-color: var(--blue-bell);
+            background-color: var(--widget-bg);
+            box-shadow: 0 0 0 3px var(--focus-ring);
+        }
+
+        .add-btn {
+            background-color: var(--btn-bg);
+            color: var(--btn-text);
+            border: none;
+            width: 38px;
+            height: 38px;
+            border-radius: 14px;
+            /* Squircle button */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .add-btn:hover {
+            background-color: var(--btn-hover);
+            color: var(--btn-hover-text);
+            transform: scale(1.05);
+        }
+
+        .add-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Reopen Widget Pill when Closed */
+        .reopen-btn {
+            display: none;
+            background-color: var(--onyx);
+            color: var(--bright-snow);
+            border: 1px solid var(--dim-grey);
+            padding: 8px 16px;
+            border-radius: 14px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3);
+            align-items: center;
+            gap: 6px;
+            transition: transform 0.2s ease;
+        }
+
+        .reopen-btn:hover {
+            transform: scale(1.05);
+            border-color: var(--chartreuse);
+        }
+
+        .reopen-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--chartreuse);
+        }
+
+        /* --- ELECTRON DESKTOP WIDGET OVERRIDES --- */
+        html,
+        body {
+            background: transparent !important;
+            background-image: none !important;
+        }
+
+        body {
+            align-items: flex-start;
+            padding: 18px;
+        }
+
+        /* Make top bar and header draggable across Windows desktop */
+        .top-bar,
+        .widget-header {
+            -webkit-app-region: drag;
+        }
+
+        /* Keep all interactive controls clickable */
+        .mac-controls,
+        .mac-btn,
+        .theme-toggle,
+        .top-actions,
+        .view-switch,
+        .items-list,
+        .input-container,
+        button,
+        input,
+        label {
+            -webkit-app-region: no-drag;
+        }
+
+        .top-actions {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .theme-toggle.pinned {
+            border-color: var(--chartreuse);
+            color: var(--chartreuse);
+        }
+
+        [data-theme="light"] .theme-toggle.pinned {
+            border-color: var(--blue-bell);
+            color: var(--blue-bell);
+        }
+
+        /* 1. Tighten the shadow so it never touches the window edges */
+        .widget-container {
+            box-shadow:
+                0 6px 14px var(--shadow-ambient),
+                0 2px 5px var(--shadow-strong),
+                inset 0 0 0 1px var(--widget-border) !important;
+        }
+
+        /* 2. Remove the ugly white/orange click outline on top buttons */
+        .theme-toggle:focus,
+        .theme-toggle:focus-visible,
+        .mac-btn:focus {
+            outline: none !important;
+        }
+
+        /* Smooth Minimize / Un-minimize Glide */
+        .widget-body {
+            max-height: 400px;
+            opacity: 1;
+            margin-top: 0px;
+            overflow: hidden;
+            transform: translateY(0);
+            transition:
+                max-height 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+                margin-top 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+                opacity 0.2s ease,
+                transform 0.28s cubic-bezier(0.22, 1, 0.36, 1) !important;
+        }
+
+        .widget-container.minimized .widget-body {
+            display: flex !important;
+            max-height: 0px !important;
+            margin-top: -14px !important;
+            /* Cancels out only the bottom gap, keeping top-bar gap intact */
+            opacity: 0 !important;
+            transform: translateY(-6px) !important;
+            pointer-events: none;
+        }
+
+        .widget-container {
+            transition:
+                width 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+                background-color var(--transition-speed) ease !important;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Reopen Trigger (Shown if user clicks Red Close button in browser) -->
+    <button class="reopen-btn" id="reopen-btn">
+        <span class="reopen-dot"></span>
+        Reopen Widget
+    </button>
+
+    <div class="widget-container minimized" id="widget">
+
+        <!-- Top Bar: macOS Controls, Pin Toggle & Theme Switch -->
+        <div class="top-bar">
+            <div class="mac-controls">
+                <button class="mac-btn mac-close" id="btn-close" title="Close Widget"
+                    aria-label="Close Widget"></button>
+                <button class="mac-btn mac-min" id="btn-min" title="Minimize Widget"
+                    aria-label="Minimize Widget"></button>
+                <button class="mac-btn mac-expand" id="btn-expand" title="Expand Width"
+                    aria-label="Expand Widget"></button>
+            </div>
+
+            <div class="top-actions">
+                <!-- Always-on-Top Pin Button -->
+                <button class="theme-toggle pinned" id="pin-btn" title="Always on Top (Active)"
+                    aria-label="Toggle Always on Top">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+                        <path
+                            d="M235.32,81.37,174.63,20.69a16,16,0,0,0-22.63,0L98.37,74.31c-10.66-3.34-29.63-6.77-49.9,7.3a16,16,0,0,0-2.13,24.47L98.69,158.4,42.34,214.75a8,8,0,0,0,11.32,11.31L110,169.71l52.32,52.32a16,16,0,0,0,11.31,4.69,15.86,15.86,0,0,0,13.16-6.82c14.07-20.27,10.64-39.24,7.3-49.9l41.23-53.63A16,16,0,0,0,235.32,81.37Z">
+                        </path>
+                    </svg>
+                </button>
+
+                <!-- Theme Switch Button -->
+                <!-- Theme Switch Button -->
+                <button class="theme-toggle" id="theme-btn" title="Switch Theme" aria-label="Toggle Theme">
+                    <!-- Moon Icon -->
+                    <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+                        <path
+                            d="M216.7,152.6A100.9,100.9,0,0,1,103.4,39.3a16,16,0,0,0-19.8-19.8A104,104,0,1,0,236.5,172.4,16,16,0,0,0,216.7,152.6Z">
+                        </path>
+                    </svg>
+                    <!-- Clean Symmetrical Sun Icon -->
+                    <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+                        <path
+                            d="M120,40V16a8,8,0,0,1,16,0V40a8,8,0,0,1-16,0Zm72,88a64,64,0,1,1-64-64A64.07,64.07,0,0,1,192,128Zm-16,0a48,48,0,1,0-48,48A48.05,48.05,0,0,0,176,128ZM58.34,69.66A8,8,0,0,0,69.66,58.34l-16-16A8,8,0,0,0,42.34,53.66Zm0,116.68-16,16a8,8,0,0,0,11.32,11.32l16-16a8,8,0,0,0-11.32-11.32ZM192,72a8,8,0,0,0,5.66-2.34l16-16a8,8,0,0,0-11.32-11.32l-16,16A8,8,0,0,0,192,72Zm5.66,114.34a8,8,0,0,0-11.32,11.32l16,16a8,8,0,0,0,11.32-11.32ZM48,128a8,8,0,0,0-8-8H16a8,8,0,0,0,0,16H40A8,8,0,0,0,48,128Zm80,80a8,8,0,0,0-8,8v24a8,8,0,0,0,16,0V216A8,8,0,0,0,128,208Zm112-88H216a8,8,0,0,0,0,16h24a8,8,0,0,0,0-16Z">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Header -->
+        <header class="widget-header">
+            <div class="header-left">
+                <h1 id="view-title">Tasks</h1>
+                <span class="date-text" id="current-date">Today</span>
+            </div>
+            <span class="count-badge" id="count-badge">1/3 done</span>
+        </header>
+
+        <!-- Widget Body (Collapsible via Minimize) -->
+        <div class="widget-body">
+            <!-- Segmented Switch: Tasks <> Notes -->
+            <div class="view-switch" id="view-switch" data-active="tasks">
+                <div class="switch-pill"></div>
+                <button class="switch-btn active" id="tab-tasks" type="button">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+                        <path
+                            d="M173.66,98.34a8,8,0,0,1,0,11.32l-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35A8,8,0,0,1,173.66,98.34ZM232,128A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88A88.1,88.1,0,0,0,216,128Z">
+                        </path>
+                    </svg>
+                    Tasks
+                </button>
+                <button class="switch-btn" id="tab-notes" type="button">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+                        <path
+                            d="M88,96a8,8,0,0,1,8-8h64a8,8,0,0,1,0,16H96A8,8,0,0,1,88,96Zm8,40h64a8,8,0,0,0,0-16H96a8,8,0,0,0,0,16Zm32,24H96a8,8,0,0,0,0,16h32a8,8,0,0,0,0-16ZM224,48V156.69A15.86,15.86,0,0,1,219.31,168L168,219.31A15.86,15.86,0,0,1,156.69,224H48a16,16,0,0,1-16-16V48A16,16,0,0,1,48,32H208A16,16,0,0,1,224,48ZM48,208H152V160a8,8,0,0,1,8-8h48V48H48Zm120-40v28.7L196.69,168Z">
+                        </path>
+                    </svg>
+                    Notes
+                </button>
+            </div>
+
+            <!-- Tasks List -->
+            <ul class="items-list" id="task-list"></ul>
+
+            <!-- Notes List -->
+            <ul class="items-list hidden" id="note-list"></ul>
+
+            <!-- Input Area -->
+            <div class="input-container">
+                <input type="text" class="item-input" id="item-input" placeholder="Add a new task..."
+                    autocomplete="off">
+                <button class="add-btn" id="add-btn" aria-label="Add Item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor"
+                        viewBox="0 0 256 256">
+                        <path
+                            d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Detect Electron environment safely
+        const ipcRenderer = typeof require !== 'undefined' ? require('electron').ipcRenderer : null;
+
+        // Default Seed Data (Used only on first run)
+        const initialTasks = [
+            { text: 'Apply custom squircle palette', completed: true },
+            { text: 'Build Tasks <> Notes switch', completed: false },
+            { text: 'Refine compact 13px typography', completed: false }
+        ];
+
+        const initialNotes = [
+            { text: 'Use Chartreuse (#baff29) & Blue Bell (#279af1) for vibrant accents.', time: 'Just now' },
+            { text: 'Double-check hover states on compact squircle cards.', time: '10m ago' }
+        ];
+
+        // DOM References
+        const widget = document.getElementById('widget');
+        const reopenBtn = document.getElementById('reopen-btn');
+        const btnClose = document.getElementById('btn-close');
+        const btnMin = document.getElementById('btn-min');
+        const btnExpand = document.getElementById('btn-expand');
+        const themeBtn = document.getElementById('theme-btn');
+        const pinBtn = document.getElementById('pin-btn');
+        const htmlElement = document.documentElement;
+
+        const viewSwitch = document.getElementById('view-switch');
+        const tabTasks = document.getElementById('tab-tasks');
+        const tabNotes = document.getElementById('tab-notes');
+        const viewTitle = document.getElementById('view-title');
+        const countBadge = document.getElementById('count-badge');
+
+        const taskList = document.getElementById('task-list');
+        const noteList = document.getElementById('note-list');
+        const itemInput = document.getElementById('item-input');
+        const addBtn = document.getElementById('add-btn');
+
+        let activeView = 'tasks';
+
+        // Set Current Date
+        const dateElement = document.getElementById('current-date');
+        dateElement.textContent = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+
+        // Theme Toggling
+        const savedTheme = localStorage.getItem('squircle-widget-theme');
+        if (savedTheme) {
+            htmlElement.setAttribute('data-theme', savedTheme);
+        }
+
+        themeBtn.addEventListener('click', () => {
+            const currentTheme = htmlElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            htmlElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('squircle-widget-theme', newTheme);
+        });
+
+        // Always on Top Pin Button
+        if (pinBtn && ipcRenderer) {
+            pinBtn.addEventListener('click', () => {
+                ipcRenderer.send('toggle-always-on-top');
+            });
+            ipcRenderer.on('pin-state-changed', (event, isPinned) => {
+                pinBtn.classList.toggle('pinned', isPinned);
+                pinBtn.title = isPinned ? 'Always on Top (Active)' : 'Always on Top (Off)';
+            });
+        }
+
+        // Sync Desktop Window Size with CSS classes
+        function syncDesktopWindowSize() {
+            if (ipcRenderer) {
+                ipcRenderer.send('window-resize', {
+                    isExpanded: widget.classList.contains('expanded'),
+                    isMinimized: widget.classList.contains('minimized')
+                });
+            }
+        }
+
+        // macOS Window Controls
+        btnClose.addEventListener('click', () => {
+            if (ipcRenderer) {
+                ipcRenderer.send('window-close-to-tray');
+            } else {
+                widget.style.display = 'none';
+                reopenBtn.style.display = 'inline-flex';
+            }
+        });
+
+        reopenBtn.addEventListener('click', () => {
+            reopenBtn.style.display = 'none';
+            widget.style.display = 'flex';
+        });
+
+        // Animated Minimize / Un-minimize Toggle
+        btnMin.addEventListener('click', () => {
+            const willMinimize = !widget.classList.contains('minimized');
+
+            if (willMinimize) {
+                // 1. Slide the HTML card up first
+                widget.classList.add('minimized');
+                // 2. Shrink the OS window once the slide finishes
+                setTimeout(() => syncDesktopWindowSize(), 260);
+            } else {
+                // 1. Expand the OS window immediately so there is room to slide down
+                if (ipcRenderer) {
+                    ipcRenderer.send('window-resize', {
+                        isExpanded: widget.classList.contains('expanded'),
+                        isMinimized: false
+                    });
+                }
+                // 2. Slide the HTML card down
+                requestAnimationFrame(() => {
+                    widget.classList.remove('minimized');
+                });
+            }
+        });
+
+        btnExpand.addEventListener('click', () => {
+            widget.classList.toggle('expanded');
+            syncDesktopWindowSize();
+        });
+
+        // Save All Tasks & Notes to Local Storage on Change
+        function saveData() {
+            const tasksData = Array.from(taskList.querySelectorAll('.task-item')).map(li => ({
+                text: li.querySelector('.item-text').textContent,
+                completed: li.classList.contains('completed')
+            }));
+
+            const notesData = Array.from(noteList.querySelectorAll('.note-item')).map(li => ({
+                text: li.querySelector('.item-text').textContent,
+                time: li.querySelector('.note-meta span:last-child').textContent
+            }));
+
+            localStorage.setItem('squircle-widget-tasks', JSON.stringify(tasksData));
+            localStorage.setItem('squircle-widget-notes', JSON.stringify(notesData));
+        }
+
+        // Switch Views (Tasks <> Notes)
+        function setView(view) {
+            activeView = view;
+            viewSwitch.setAttribute('data-active', view);
+
+            if (view === 'tasks') {
+                tabTasks.classList.add('active');
+                tabNotes.classList.remove('active');
+                viewTitle.textContent = 'Tasks';
+                taskList.classList.remove('hidden');
+                noteList.classList.add('hidden');
+                itemInput.placeholder = 'Add a new task...';
+            } else {
+                tabNotes.classList.add('active');
+                tabTasks.classList.remove('active');
+                viewTitle.textContent = 'Notes';
+                noteList.classList.remove('hidden');
+                taskList.classList.add('hidden');
+                itemInput.placeholder = 'Jot down a note...';
+            }
+            updateCounter();
+        }
+
+        tabTasks.addEventListener('click', () => setView('tasks'));
+        tabNotes.addEventListener('click', () => setView('notes'));
+
+        // Update Counter Badge, Empty States & Save to Disk
+        function updateCounter() {
+            const taskItems = taskList.querySelectorAll('.task-item');
+            const completedTasks = taskList.querySelectorAll('.task-item.completed');
+            const noteItems = noteList.querySelectorAll('.note-item');
+
+            const taskEmpty = taskList.querySelector('.empty-state');
+            if (taskItems.length === 0 && !taskEmpty) {
+                taskList.innerHTML = `<li class="empty-state">No tasks yet. Add one below!</li>`;
+            } else if (taskItems.length > 0 && taskEmpty) {
+                taskEmpty.remove();
+            }
+
+            const noteEmpty = noteList.querySelector('.empty-state');
+            if (noteItems.length === 0 && !noteEmpty) {
+                noteList.innerHTML = `<li class="empty-state">No notes yet. Jot something down!</li>`;
+            } else if (noteItems.length > 0 && noteEmpty) {
+                noteEmpty.remove();
+            }
+
+            if (activeView === 'tasks') {
+                countBadge.textContent = `${completedTasks.length}/${taskItems.length} done`;
+            } else {
+                countBadge.textContent = `${noteItems.length} ${noteItems.length === 1 ? 'note' : 'notes'}`;
+            }
+
+            saveData();
+        }
+
+        // Action Icons SVG Markup
+        const actionsHTML = `
+            <div class="item-actions">
+                <button class="action-btn edit" title="Edit" type="button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 256 256"><path d="M227.31,73.37,182.63,28.68a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H92.69A15.86,15.86,0,0,0,104,219.31L227.31,96a16,16,0,0,0,0-22.63ZM92.69,208H48V163.31l88-88L180.69,120ZM192,108.68,147.31,64l12.69-12.69,44.69,44.69Z"></path></svg>
+                </button>
+                <button class="action-btn delete" title="Delete" type="button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 256 256"><path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"></path></svg>
+                </button>
+            </div>
+        `;
+
+        // Create Task Element
+        function createTaskElement(text, isCompleted = false) {
+            const li = document.createElement('li');
+            li.className = `task-item ${isCompleted ? 'completed' : ''}`;
+            li.innerHTML = `
+                <label class="checkbox-wrapper">
+                    <input type="checkbox" ${isCompleted ? 'checked' : ''}>
+                    <span class="checkmark"></span>
+                </label>
+                <span class="item-text">${escapeHTML(text)}</span>
+                <input type="text" class="edit-input" value="${escapeHTML(text)}">
+                ${actionsHTML}
+            `;
+
+            const checkbox = li.querySelector('input[type="checkbox"]');
+            checkbox.addEventListener('change', (e) => {
+                li.classList.toggle('completed', e.target.checked);
+                updateCounter();
+            });
+
+            attachEditDeleteEvents(li);
+            return li;
+        }
+
+        // Create Note Element
+        function createNoteElement(text, timeLabel = null) {
+            const timestamp = timeLabel || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const li = document.createElement('li');
+            li.className = 'note-item';
+            li.innerHTML = `
+                <div class="note-top">
+                    <span class="item-text">${escapeHTML(text)}</span>
+                    <input type="text" class="edit-input" value="${escapeHTML(text)}">
+                    ${actionsHTML}
+                </div>
+                <div class="note-meta">
+                    <span class="note-dot"></span>
+                    <span>${escapeHTML(timestamp)}</span>
+                </div>
+            `;
+
+            attachEditDeleteEvents(li);
+            return li;
+        }
+
+        // Shared Edit & Delete Event Logic
+        function attachEditDeleteEvents(li) {
+            const editBtn = li.querySelector('.edit');
+            const deleteBtn = li.querySelector('.delete');
+            const editInput = li.querySelector('.edit-input');
+            const itemText = li.querySelector('.item-text');
+
+            deleteBtn.addEventListener('click', () => {
+                li.style.transform = 'scale(0.94)';
+                li.style.opacity = '0';
+                setTimeout(() => {
+                    li.remove();
+                    updateCounter();
+                }, 180);
+            });
+
+            editBtn.addEventListener('click', () => {
+                li.classList.add('editing');
+                editInput.focus();
+                editInput.selectionStart = editInput.selectionEnd = editInput.value.length;
+            });
+
+            const saveEdit = () => {
+                const newVal = editInput.value.trim();
+                if (newVal) {
+                    itemText.textContent = newVal;
+                    editInput.value = newVal;
+                } else {
+                    editInput.value = itemText.textContent;
+                }
+                li.classList.remove('editing');
+                saveData();
+            };
+
+            editInput.addEventListener('blur', saveEdit);
+            editInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') editInput.blur();
+                if (e.key === 'Escape') {
+                    editInput.value = itemText.textContent;
+                    editInput.blur();
+                }
+            });
+        }
+
+        // Add New Task or Note
+        function handleAddItem() {
+            const value = itemInput.value.trim();
+            if (!value) return;
+
+            if (activeView === 'tasks') {
+                const empty = taskList.querySelector('.empty-state');
+                if (empty) empty.remove();
+                const el = createTaskElement(value, false);
+                taskList.appendChild(el);
+                taskList.scrollTop = taskList.scrollHeight;
+            } else {
+                const empty = noteList.querySelector('.empty-state');
+                if (empty) empty.remove();
+                const el = createNoteElement(value);
+                noteList.prepend(el);
+                noteList.scrollTop = 0;
+            }
+
+            itemInput.value = '';
+            updateCounter();
+        }
+
+        addBtn.addEventListener('click', handleAddItem);
+        itemInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') handleAddItem();
+        });
+
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                "'": '&#39;',
+                '"': '&quot;'
+            }[tag] || tag));
+        }
+
+        // Load Saved Items from LocalStorage (or fall back to Initial Seed Items on first launch)
+        const savedTasks = JSON.parse(localStorage.getItem('squircle-widget-tasks') || 'null');
+        const savedNotes = JSON.parse(localStorage.getItem('squircle-widget-notes') || 'null');
+
+        (savedTasks !== null ? savedTasks : initialTasks).forEach(t => {
+            taskList.appendChild(createTaskElement(t.text, t.completed));
+        });
+
+        (savedNotes !== null ? savedNotes : initialNotes).forEach(n => {
+            noteList.appendChild(createNoteElement(n.text, n.time));
+        });
+
+        updateCounter();
+    </script>
+</body>
+
+</html>
