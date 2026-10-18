@@ -6,7 +6,7 @@ A compact, modern desktop widget for managing quick tasks and notes with a sleek
 
 ---
 
-## ✨ Features
+## Features
 
 - **Compact & Collapsible** — Minimalist footprint that expands smoothly when you need it.
 - **Tasks & Notes in One Place** — Switch between your daily checklist and scratchpad notes effortlessly.
@@ -16,7 +16,7 @@ A compact, modern desktop widget for managing quick tasks and notes with a sleek
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 Make sure you have [Node.js](https://nodejs.org/) installed.
@@ -49,7 +49,7 @@ The output installer will be created inside the `dist/` directory.
 
 ---
 
-## 🛠️ Built With
+## Built With
 
 - **[Electron](https://www.electronjs.org/)** — Desktop app runtime
 - **HTML5 / Vanilla CSS / JavaScript** — Clean, performant UI with no heavy frameworks
